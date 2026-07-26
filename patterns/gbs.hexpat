@@ -4,10 +4,6 @@
 import std.mem;
 import std.string;
 
-bitfield GBSFlags {
-	idk : 88;
-};
-
 fn formatString(str string) {
 	u8 stringIndex;
 	while (stringIndex < 32) {
@@ -23,7 +19,7 @@ struct Header {
 	char signature[3];
 	u8 version;
 	u8 numberOfTracks;
-	GBSFlags flags;
+	u8 flags[11];
 	char title[32] [[format("formatString")]];
 	char credits[32] [[format("formatString")]];
 	char copyright[32] [[format("formatString")]];
