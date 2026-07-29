@@ -25,8 +25,7 @@ fn DisplayYear(u8 value) {
     u16 year = 1989;
     if (value >= 0x85) {
         calendar += "Gregorian calendar";
-        year = 1985;
-        fullYearDisplay += std::string::to_string(value-48);
+        fullYearDisplay += "19" + std::string::to_string(value-48);
     }
     else {
         calendar += "Japanese calendar (";
