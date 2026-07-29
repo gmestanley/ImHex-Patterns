@@ -1,13 +1,13 @@
+#pragma author gmestanley
+#pragma description Quick Disk format
+
 import hex.provider;
 import type.bcd;
 import std.mem;
 import std.string;
 
-u8 actualDiskPosition;
-
 struct FwNESHeader {
     if (std::mem::read_string(0x00, 3) == "FDS" && $[3] == 0x1A) {
-        actualDiskPosition = 0x10;
         char signature[4];
         u8 numberOfDiskSides;
     }
@@ -19,18 +19,37 @@ enum CountryType : u8 {
     Japan = 0x49
 };
 
-u8 headerPosition;
-bool debug in;
+fn DisplayYear(u8 value) {
+    str fullYearDisplay = "";
+    str calendar = "";
+    u16 year = 1989;
+    if (value >= 0x85) {
+        calendar += "Gregorian calendar";
+        year = 1985;
+        fullYearDisplay += std::string::to_string(value-48);
+    }
+    else {
+        calendar += "Japanese calendar (";
+        if (value >= 0x61) {
+            calendar += "Showa";
+            year = 1986;
+        }
+        else {
+            calendar += "Heisei";
+        }
+        fullYearDisplay += std::string::to_string(year+((value^0x60)-1));
+        calendar += " era)";
+    }
+    return std::string::to_string(fullYearDisplay + ", " + calendar);
+};
+
+struct Date {
+    u8 year [[format("DisplayYear")]];
+    u8 month;
+    u8 day;
+};
 
 struct Header {
-    if (debug) {
-        std::print("Position of header before setting, by variable: "+std::string::to_string(headerPosition));
-        std::print("Position of header before setting: "+std::string::to_string($));
-        headerPosition = $;
-        std::print("Position of header after setting, by variable: "+std::string::to_string(headerPosition));
-        std::print("Position of header after setting: "+std::string::to_string($));
-    }
-
     char signature[14];
     u8 licenseeCode;
     char gameID[3];
@@ -42,10 +61,10 @@ struct Header {
     padding[1];
     u8 numberOfFileReadOnBoot;
     padding[5];
-    type::BCD<1> manufacturingDate[3];
+    Date manufacturingDate;
     CountryType country;
     padding[9];
-    type::BCD<1> rewrittenDiskDate[3];
+    Date rewrittenDiskDate;
     padding[2];
     u16 diskWriterSerialNumber;
     padding[1];
@@ -55,13 +74,21 @@ struct Header {
     u8 diskVersion;
 };
 
+fn displayFileType(u8 type) {
+    match (type) {
+        (0): return "Program, PRG-RAM";
+        (1): return "Character, CHR-RAM";
+        (2): return "Nametable, VRAM";
+    }
+};
+
 struct FileHeaderBlock {
     u8 fileNumber;
     u8 fileID;
     char fileName[8];
     u16 fileAddress;
     u16 fileSize;
-    u8 fileType;
+    u8 fileType [[format("displayFileType")]];
 } [[inline]];
 
 struct Block {
@@ -82,19 +109,14 @@ struct File {
     Block fileData;
 };
 
+u24 paddingLimit = 0xFFDB + 37 * (hex::prv::get_information("file_extension") == ".qd");
+
 struct DiskSide {
     Block header;
     Block fileAmount;
     File files[fileAmount.fileAmount];
-    if (hex::prv::get_information(
-    "file_extension") == ".fds")
-        padding[while($-headerPosition<0xFFDB)];
-        
-    if (debug) {
-        std::print("Current position of header minus old position of header: "+std::string::to_string($-headerPosition));
-        std::print("Position of header by variable: "+std::string::to_string(headerPosition));
-        std::print("Position of header: "+std::string::to_string($));
-    }
+    padding[while($<paddingLimit)];
+    paddingLimit+=0x10000;
 };
 
-DiskSide diskSides[while($<std::mem::size())] @ actualDiskPosition;
+DiskSide diskSides[while($<std::mem::size())] @ sizeof(fwNESHeader);
