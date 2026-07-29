@@ -214,6 +214,7 @@ Everything will immediately show up in ImHex's Content Store and gets bundled wi
 | shx | | [`patterns/shx.hexpat`](patterns/shx.hexpat) | ESRI index file |
 | smk | | [`patterns/smk.hexpat`](patterns/smk.hexpat) | Smacker video file |
 | SNES | | [`patterns/snes.hexpat`](patterns/snes.hexpat) | Super Nintendo Entertainment System ROM header |
+| Sega Saturn | | [`patterns/ss.hexpat`](patterns/ss.hexpat) | Sega Saturn CD-ROM header |
 | sup | | [`patterns/sup.hexpat`](patterns/sup.hexpat) | PGS Subtitle |
 | SPC | | [`patterns/spc.hexpat`](patterns/spc.hexpat) | Super Nintendo Entertainment System SPC-700 dump file |
 | SPIRV | | [`patterns/spirv.hexpat`](patterns/spirv.hexpat) | SPIR-V header and instructions |
